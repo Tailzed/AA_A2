@@ -51,11 +51,12 @@ function Ensure-LocalVcpkg {
             ((Get-Content $marker -Raw).Trim() -eq $baseline)
     if (-not $done) {
         Write-Host "Bootstrapping vcpkg..." -ForegroundColor Cyan
-        & (Join-Path $dir "bootstrap-vcpkg.bat") -disableMetrics
+        # Out-Host: show the bootstrap output without it becoming part of this function's return value.
+        & (Join-Path $dir "bootstrap-vcpkg.bat") -disableMetrics | Out-Host
         if ($LASTEXITCODE -ne 0) { Fail "bootstrap-vcpkg failed." }
         Set-Content -Path $marker -Value $baseline
     }
-    return $dir
+    $script:LocalVcpkgRoot = $dir   # not "return": any stray output would end up in the return value
 }
 
 # --- optional: a vcpkg that is already on the machine (-SystemVcpkg) ------------------------------------
@@ -78,7 +79,11 @@ if ($SystemVcpkg) {
     $root = Find-SystemVcpkg
     if (-not $root) { Fail "No system vcpkg found (set VCPKG_ROOT or install Visual Studio's vcpkg component). Run without -SystemVcpkg to use the private copy." }
 } else {
-    $root = Ensure-LocalVcpkg
+    Ensure-LocalVcpkg | Out-Host
+    $root = $script:LocalVcpkgRoot
+    if (-not ($root -is [string]) -or -not (Test-Path (Join-Path $root "scripts\buildsystems\vcpkg.cmake"))) {
+        Fail "The private vcpkg in .vcpkg is not usable. Delete the .vcpkg folder and run .\build.ps1 again."
+    }
 }
 $env:VCPKG_ROOT = $root   # only for this script run; nothing is saved to your system
 Write-Host "Using vcpkg at $root" -ForegroundColor Cyan
