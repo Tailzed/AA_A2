@@ -37,18 +37,23 @@ for the contract (valid seam, deterministic, leftmost tie-break, honest `Seam::c
 
 ## Quick start (Windows, Visual Studio 2026)
 
-1. In the Visual Studio Installer, install **Desktop development with C++** and (Individual components)
-   **vcpkg package manager**.
+1. Install **Visual Studio 2026** with the **Desktop development with C++** workload, and **Git**.
+   Nothing else: no vcpkg install, no environment variables.
 2. Open PowerShell in this folder and run `.\build.ps1`
    (if scripts are blocked: `powershell -ExecutionPolicy Bypass -File .\build.ps1`).
-   The first run builds Qt and OpenCV from source through `vcpkg.json` (can take 30-90+ minutes; cached
-   afterwards). `build.ps1` only builds; it does not run tests.
+   The first run clones a private copy of vcpkg into `.vcpkg\` (a few hundred MB, git-ignored), builds Qt and
+   OpenCV from source through `vcpkg.json` (can take 30-90+ minutes; cached afterwards). `build.ps1` only
+   builds; it does not run tests.
 3. Run the app: `build\gui\Release\seamcarve_app.exe sample\tower.png` (the image argument is optional;
    you can also drag an image onto the window).
 4. Run tests with `.\test.ps1` (see below).
 
-`build.ps1` finds vcpkg by itself (`VCPKG_ROOT` if set, otherwise the copy bundled with Visual Studio),
-then configures and builds. Run it again after every code change.
+`build.ps1` keeps vcpkg private to the project: it clones vcpkg into `.vcpkg\`, checks out the commit pinned
+as `builtin-baseline` in `vcpkg.json`, bootstraps it, sets `VCPKG_ROOT` for that run only, then configures
+and builds. Your system vcpkg is never touched, and everyone builds the same package versions. Run it again
+after every code change. To use a vcpkg already on your machine (`VCPKG_ROOT`, or the one bundled with Visual
+Studio) run `.\build.ps1 -SystemVcpkg`. To change library versions, replace the `builtin-baseline` hash in
+`vcpkg.json` and rebuild.
 
 ### Windows Security / Smart App Control
 
@@ -101,9 +106,9 @@ Smart App Control may still block the unsigned exe on a PC where it is on.
 
 ## Build manually (Windows, Visual Studio 2026 + vcpkg)
 
-1. Install vcpkg (`git clone https://github.com/microsoft/vcpkg C:\vcpkg`, then `C:\vcpkg\bootstrap-vcpkg.bat`)
-   and set `VCPKG_ROOT` to its folder (`setx VCPKG_ROOT "C:\vcpkg"`, then open a new terminal).
-   Keep vcpkg up to date (`git pull` + bootstrap) so it recognises newer Visual Studio versions.
+1. Run `.\build.ps1` once so `.vcpkg\` exists, then in the same PowerShell window set
+   `$env:VCPKG_ROOT = "$PWD\.vcpkg"`. (Or use your own vcpkg clone, checked out at the `builtin-baseline`
+   commit from `vcpkg.json`.)
 2. From PowerShell in this folder (the preset targets Visual Studio 2026; for another version change
    the `generator` line in `CMakePresets.json`, e.g. `Visual Studio 17 2022`):
 
