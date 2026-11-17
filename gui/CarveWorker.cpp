@@ -3,14 +3,9 @@
 #include <exception>
 #include <utility>
 
-CarveWorker::CarveWorker(cv::Mat source, int targetW, int targetH, sc::Algorithm algorithm,
-                         sc::EnergyMode energy, QObject* parent)
-    : QObject(parent),
-      source_(std::move(source)),
-      targetW_(targetW),
-      targetH_(targetH),
-      algorithm_(algorithm),
-      energy_(energy) {}
+CarveWorker::CarveWorker(cv::Mat source, int targetW, int targetH, sc::Algorithm algorithm, sc::EnergyMode energy, QObject* parent)
+    : QObject(parent), source_(std::move(source)), targetW_(targetW), targetH_(targetH), algorithm_(algorithm), energy_(energy) 
+    { /*Empty by design*/ }
 
 void CarveWorker::run() {
     try {
