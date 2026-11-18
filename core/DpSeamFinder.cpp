@@ -5,6 +5,10 @@
 #include <opencv2/imgproc.hpp>
 
 namespace sc {
+    // STUB: someone else is implementing DP; placeholder stub:
+    // Seam DpSeamFinder::findVertical(const cv::Mat& /*img*/, const cv::Mat& energy) {
+    //     return middleColumnSeam(energy);
+    // }
     // STUB: returns the middle column so the GUI runs end to end.
     // Replace the body with the real dynamic programming:
     //   M[0][j] = e[0][j]

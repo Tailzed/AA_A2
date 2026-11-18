@@ -19,6 +19,9 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
+#include <chrono>
+
+#include "core/SeamFinder.hpp"
 #include "core/SeamOps.hpp"
 #include "gui/CarveWorker.hpp"
 #include "gui/MatQtConvert.hpp"
@@ -31,6 +34,10 @@ ResultDialog::ResultDialog(const QString& algorithmName, sc::Algorithm algorithm
       energy_(energy),
       original_(original),
       result_(result) {
+    finder_ = sc::makeFinder(algorithm_);
+    if (!result_.vMap.empty()) finder_->vMap() = result_.vMap;
+    if (!result_.hMap.empty()) finder_->hMap() = result_.hMap;
+
     setAttribute(Qt::WA_DeleteOnClose);  // non-modal: opened with show(), never exec()
     setSizeGripEnabled(true);
 
@@ -119,6 +126,20 @@ void ResultDialog::showEvent(QShowEvent* event) {
 
 bool ResultDialog::eventFilter(QObject* watched, QEvent* event) {
     if (watched == imageLabel_ && event->type() == QEvent::Resize) {
+        if (ready_ && finder_ && finder_->hasMaps()) {
+            const int targetW = std::clamp(imageLabel_->width(), 1, original_.cols);
+            const int targetH = std::clamp(imageLabel_->height(), 1, original_.rows);
+            if (targetW != result_.image.cols || targetH != result_.image.rows) {
+                const auto t0 = std::chrono::steady_clock::now();
+                result_.image = finder_->reconstruct(original_, targetW, targetH);
+                result_.removedOrder = finder_->buildRemovedOrder(original_, targetW, targetH);
+                result_.seamsRemoved = (original_.cols - targetW) + (original_.rows - targetH);
+                result_.elapsedMs =
+                    std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+                applyResult();
+                return QDialog::eventFilter(watched, event);
+            }
+        }
         refresh();                           // immediate feedback: show the current result fitted to the label
         if (ready_) debounce_->start();      // the real carve follows once the resizing pauses
     }
@@ -231,7 +252,11 @@ void ResultDialog::applyResult() {
 void ResultDialog::refresh() {
     QImage img;
     if (seamBox_->isChecked()) {
-        img = matToQImage(sc::overlaySeams(original_, result_.removedOrder, stepSlider_->value()));
+        if (!result_.removedOrder.empty() && result_.removedOrder.size() == original_.size()) {
+            img = matToQImage(sc::overlaySeams(original_, result_.removedOrder, stepSlider_->value()));
+        } else {
+            img = matToQImage(result_.image);
+        }
         stepLabel_->setText(QString("%1 / %2").arg(stepSlider_->value()).arg(result_.seamsRemoved));
     } else {
         img = matToQImage(result_.image);

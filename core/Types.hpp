@@ -38,6 +38,8 @@ struct CarveResult {
     bool cancelled = false;
     double elapsedMs = 0.0;     // whole carve() call, energy computation included
     cv::Mat1i removedOrder;     // original-size map: 0 = kept, k > 0 = removed by k-th seam
+    cv::Mat1i vMap;             // precomputed vertical index map (size H0 x W0)
+    cv::Mat1i hMap;             // precomputed horizontal index map (size H0 x W0)
 };
 
 }  // namespace sc

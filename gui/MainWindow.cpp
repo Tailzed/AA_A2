@@ -190,9 +190,7 @@ void MainWindow::onRun() {
     connect(thread_, &QThread::finished, worker_, &QObject::deleteLater);
     connect(thread_, &QThread::finished, thread_, &QObject::deleteLater);
 
-    bar_->setRange(0, targetW < original_.cols || targetH < original_.rows
-                          ? (original_.cols - targetW) + (original_.rows - targetH)
-                          : 1);
+    bar_->setRange(0, std::max(1, (original_.cols - 1) + (original_.rows - 1)));
     bar_->setValue(0);
     statusLabel_->setText("Running...");
     setRunning(true);

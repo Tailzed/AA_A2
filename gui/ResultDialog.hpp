@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <optional>
 
 #include <QDialog>
@@ -8,6 +9,10 @@
 #include <opencv2/core.hpp>
 
 #include "core/Types.hpp"
+
+namespace sc {
+class ISeamFinder;
+}
 
 class CarveWorker;
 class QCheckBox;
@@ -52,6 +57,7 @@ private:
     sc::EnergyMode energy_;
     cv::Mat original_;
     sc::CarveResult result_;
+    std::unique_ptr<sc::ISeamFinder> finder_;
 
     QLabel* imageLabel_ = nullptr;
     QLabel* infoLabel_ = nullptr;
