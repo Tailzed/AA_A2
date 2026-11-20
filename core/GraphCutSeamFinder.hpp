@@ -2,8 +2,6 @@
 #include "core/SeamFinder.hpp"
 
 namespace sc {
-
-// >>> YOURS TO IMPLEMENT (assignment item 4) <<<
 //
 // Notes for the implementation:
 //  * Use int64_t capacities (llround of the energy). "Infinity" = a large int64
