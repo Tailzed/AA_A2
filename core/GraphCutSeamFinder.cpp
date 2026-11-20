@@ -346,12 +346,13 @@ namespace sc {
 
         // Main Dinic's loop
         while (bfs()) {
-            // Reset current-arc pointers to the first edge of each node.
+            // Reset current-arc pointers once per BFS phase.
+            // They must persist across DFS calls so that edges already
+            // retreated from are never re-tried in the same phase.
             std::copy(head.begin(), head.end(), cur.begin());
 
             while (dfs(INF) > 0) {
-                // Reset cur again for each blocking-flow iteration.
-                std::copy(head.begin(), head.end(), cur.begin());
+                // intentionally no cur[] reset here
             }
         }
 
