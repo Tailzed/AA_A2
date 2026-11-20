@@ -171,8 +171,6 @@ namespace sc {
 
     Seam GraphCutSeamFinder::findVertical(const cv::Mat& /*img*/, const cv::Mat& energy) {
         /*
-            Dinic's max-flow algorithm  –  O(V^2 * E)
-            ==========================================
             1. BFS from S to build a *level graph* (level[u] = shortest hop distance from S).
             2. DFS along edges that go from level L to level L+1, pushing as much flow as
                possible in one pass (a "blocking flow").
@@ -188,7 +186,7 @@ namespace sc {
                 than per-node vectors of edges.
         */
 
-        // ---- Edge stored in a flat pool; reverse edge is always at index (i ^ 1) ----
+        // Edge stored in a flat pool; reverse edge is always at index (i ^ 1)
         struct Edge {
             int     to;      // destination node
             int64_t resCap;  // residual capacity  (capacity − flow)
@@ -201,7 +199,7 @@ namespace sc {
         const int T = N + 1;          // super-sink
         const int totalNodes = T + 1;
 
-        // ---- Flat edge pool + per-node head list (CSR-like, via linked list) ----
+        //  Flat edge pool + per-node head list
         //  head[u]           = index of first edge out of u  (-1 if none)
         //  nxt[edgeIdx]      = index of next edge with same source (-1 if last)
         //
@@ -236,7 +234,7 @@ namespace sc {
             head[v] = idx + 1;
         };
 
-        // ---- Build the graph (identical topology to the previous version) ----
+        // Build the graph
         for (int y = 0; y < H; y++) {
             addEdge(S, id(y, 0), INF);       // source → leftmost column
             addEdge(id(y, W), T, INF);        // rightmost (dummy) column → sink
@@ -254,7 +252,7 @@ namespace sc {
             }
         }
 
-        // ---- Dinic's: BFS to build level graph, DFS to find blocking flows ----
+        // BFS to build level graph, DFS to find blocking flows
         std::vector<int> level(totalNodes);
         std::vector<int> cur(totalNodes);   // current-arc optimisation
 
@@ -352,11 +350,10 @@ namespace sc {
             std::copy(head.begin(), head.end(), cur.begin());
 
             while (dfs(INF) > 0) {
-                // intentionally no cur[] reset here
             }
         }
 
-        // ---- Extract the min-cut seam ----
+        // Extract the min-cut seam
         // After max-flow, perform one final BFS from S in the residual graph.
         // Reachable nodes are on the source side; the seam is at the boundary.
         std::vector<bool> visited(totalNodes, false);
